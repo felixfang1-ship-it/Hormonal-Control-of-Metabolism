@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BIO 361 Lecture 24 Quiz</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f7fb;
+      color: #1e293b;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    header { margin-bottom: 20px; }
+    h1 { margin-bottom: 8px; }
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.08);
+      margin-bottom: 18px;
+    }
+    .row, .nav-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .status {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-weight: bold;
+    }
+    .options {
+      display: grid;
+      gap: 12px;
+      margin: 18px 0;
+    }
+    .option-btn {
+      width: 100%;
+      text-align: left;
+      padding: 14px 16px;
+      border: 2px solid #cbd5e1;
+      background: #fff;
+      color: #111827;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .option-btn:hover { border-color: #64748b; }
+    .option-btn.correct-choice {
+      border-color: #166534;
+      background: #dcfce7;
+      color: #166534;
+      font-weight: bold;
+    }
+    .option-btn.wrong-choice {
+      border-color: #b91c1c;
+      background: #fee2e2;
+      color: #b91c1c;
+      font-weight: bold;
+    }
+    .option-btn:disabled {
+      cursor: not-allowed;
+      opacity: 1;
+    }
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      cursor: pointer;
+      background: #2563eb;
+      color: white;
+      font-size: 15px;
+    }
+    button.secondary { background: #64748b; }
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+    .hidden { display: none; }
+    .review-item {
+      background: white;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.08);
+      margin-bottom: 14px;
+    }
+    .correct {
+      color: #166534;
+      font-weight: bold;
+    }
+    .incorrect {
+      color: #b91c1c;
+      font-weight: bold;
+    }
+    .feedback {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-weight: bold;
+    }
+    .feedback.correct {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .feedback.incorrect {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+    footer {
+      margin-top: 18px;
+      color: #475569;
+      font-size: 14px;
+    }
+    label { font-size: 16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>BIO 361 Lecture 24 Quiz</h1>
+      <p>Hormonal Control of Metabolism — instant feedback version.</p>
+    </header>
+
+    <section class="controls card">
+      <div class="row">
+        <label><input type="checkbox" id="shuffleQuestions" checked> Shuffle questions</label>
+        <label><input type="checkbox" id="shuffleChoices"> Shuffle answer choices</label>
+      </div>
+      <div class="row">
+        <button id="startBtn" type="button">Start Quiz</button>
+        <button id="restartBtn" type="button" class="secondary">Reset</button>
+      </div>
+    </section>
+
+    <section id="quizArea" class="hidden">
+      <div class="status card">
+        <div id="progressText">Question 1 / 24</div>
+        <div id="scoreText">Score: 0</div>
+      </div>
+
+      <div class="card">
+        <h2 id="questionText"></h2>
+        <div id="optionsContainer" class="options"></div>
+        <div id="feedbackBox" class="hidden"></div>
+        <div class="nav-row">
+          <button id="prevBtn" type="button" class="secondary">Previous</button>
+          <button id="nextBtn" type="button">Next</button>
+          <button id="submitBtn" type="button" class="hidden">Submit Quiz</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="resultArea" class="hidden">
+      <div class="card">
+        <h2>Results</h2>
+        <p id="finalScore"></p>
+        <p id="finalPercent"></p>
+        <button id="reviewBtn" type="button">Review Wrong Answers</button>
+      </div>
+      <div id="reviewArea" class="hidden"></div>
+    </section>
+
+    <footer>
+      <p>Lecture 24: Hormonal Control of Metabolism</p>
+    </footer>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        q: "Hormones are produced by endocrine tissues and communicate primarily through the:",
+        options: ["Lymph only", "Bloodstream", "Mitochondrial matrix", "Nucleus only"],
+        answer: 1
+      },
+      {
+        q: "Hormonal control is coordinated by the:",
+        options: ["Digestive system", "Neuroendocrine system", "Cytoskeleton", "Golgi apparatus"],
+        answer: 1
+      },
+      {
+        q: "Hormones change metabolism by using:",
+        options: ["Signal transduction", "DNA replication", "Protein degradation only", "Direct ATP synthesis"],
+        answer: 0
+      },
+      {
+        q: "Insulin is released mainly in response to:",
+        options: ["Low blood glucose", "Elevated blood glucose", "Low oxygen", "High ketone bodies only"],
+        answer: 1
+      },
+      {
+        q: "Insulin is classified as a:",
+        options: ["Steroid hormone", "Peptide hormone", "Fatty acid", "Nucleotide sugar"],
+        answer: 1
+      },
+      {
+        q: "Pancreatic cells that secrete insulin are:",
+        options: ["α cells", "β cells", "δ cells", "Red blood cells"],
+        answer: 1
+      },
+      {
+        q: "Insulin generally acts to:",
+        options: ["Increase blood glucose", "Counter high blood glucose", "Promote glycogen breakdown during fasting", "Inhibit all glucose uptake"],
+        answer: 1
+      },
+      {
+        q: "In muscle and adipose tissue, insulin increases glucose uptake by promoting the activity of:",
+        options: ["GLUT4", "GLUT1 only", "Hexokinase only", "Pyruvate kinase"],
+        answer: 0
+      },
+      {
+        q: "In liver, insulin increases glucose uptake in part by increasing expression of:",
+        options: ["Glucokinase", "Glycogen phosphorylase", "PP1", "Malate dehydrogenase"],
+        answer: 0
+      },
+      {
+        q: "Insulin promotes glycogen synthesis by activating:",
+        options: ["Glycogen phosphorylase", "Glycogen synthase", "Glucagon receptor", "Succinate dehydrogenase"],
+        answer: 1
+      },
+      {
+        q: "Insulin decreases glycogen breakdown by decreasing:",
+        options: ["Glycogen synthase", "Glycogen phosphorylase", "GLUT4", "Glucokinase"],
+        answer: 1
+      },
+      {
+        q: "Insulin promotes glycolysis partly by affecting PFK-1 through:",
+        options: ["PFK-2", "FBPase-1", "Citrate synthase", "PDH kinase"],
+        answer: 0
+      },
+      {
+        q: "Insulin promotes acetyl-CoA production by activating the:",
+        options: ["Pyruvate dehydrogenase complex", "Glycogen phosphorylase", "Debranching enzyme", "MPC inhibitor"],
+        answer: 0
+      },
+      {
+        q: "Insulin promotes fatty acid synthesis by activating:",
+        options: ["Acetyl-CoA carboxylase", "Hormone-sensitive lipase", "Glucagon", "PP2A only"],
+        answer: 0
+      },
+      {
+        q: "Insulin promotes triacylglycerol synthesis in adipose tissue by increasing:",
+        options: ["Lipoprotein lipase", "Glycogen phosphorylase", "Enolase", "Succinate thiokinase"],
+        answer: 0
+      },
+      {
+        q: "The insulin receptor protein is a type of:",
+        options: ["G-protein coupled receptor", "Receptor tyrosine kinase", "Ion channel only", "Nuclear receptor"],
+        answer: 1
+      },
+      {
+        q: "Insulin itself enters the cell to activate metabolism.",
+        options: ["True", "False"],
+        answer: 1
+      },
+      {
+        q: "Insulin binding causes the insulin receptor to undergo:",
+        options: ["Autophosphorylation", "Proteolysis", "Only ligand diffusion", "DNA methylation"],
+        answer: 0
+      },
+      {
+        q: "The kinase domains of the insulin receptor are located on the:",
+        options: ["Outer membrane face only", "Cytosolic face", "Inside the nucleus", "ER lumen"],
+        answer: 1
+      },
+      {
+        q: "Glucagon is released mainly when blood glucose is:",
+        options: ["High", "Low", "Unchanged", "Equal to oxygen concentration"],
+        answer: 1
+      },
+      {
+        q: "Glucagon stimulates glycogen breakdown mainly during:",
+        options: ["The well-fed state", "Fasting", "Only exercise recovery", "Only sleep"],
+        answer: 1
+      },
+      {
+        q: "Glucagon also upregulates:",
+        options: ["Gluconeogenesis", "Fatty acid synthesis only", "Protein translation only", "Glycogen synthesis only"],
+        answer: 0
+      },
+      {
+        q: "During prolonged starvation, metabolism shifts to prioritize fuel for the:",
+        options: ["Liver", "Brain", "Spleen", "Bone only"],
+        answer: 1
+      },
+      {
+        q: "At the beginning of a fast, the largest fuel reserve in both normal-weight and obese individuals is:",
+        options: ["Glycogen", "Circulating glucose", "Triacylglycerols", "Protein only"],
+        answer: 2
+      }
+    ];
+
+    let quizQuestions = [];
+    let currentIndex = 0;
+    let selectedAnswers = [];
+    let answeredQuestions = [];
+    let score = 0;
+
+    const startBtn = document.getElementById("startBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const submitBtn = document.getElementById("submitBtn");
+    const reviewBtn = document.getElementById("reviewBtn");
+
+    const quizArea = document.getElementById("quizArea");
+    const resultArea = document.getElementById("resultArea");
+    const reviewArea = document.getElementById("reviewArea");
+
+    const questionText = document.getElementById("questionText");
+    const optionsContainer = document.getElementById("optionsContainer");
+    const progressText = document.getElementById("progressText");
+    const scoreText = document.getElementById("scoreText");
+    const finalScore = document.getElementById("finalScore");
+    const finalPercent = document.getElementById("finalPercent");
+    const feedbackBox = document.getElementById("feedbackBox");
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
+      }
+      return arr;
+    }
+
+    function buildQuiz() {
+      const shuffleQuestions = document.getElementById("shuffleQuestions").checked;
+      const shuffleChoices = document.getElementById("shuffleChoices").checked;
+
+      quizQuestions = questions.map(q => ({
+        prompt: q.q,
+        answerText: q.options[q.answer],
+        options: [...q.options]
+      }));
+
+      if (shuffleChoices) {
+        quizQuestions = quizQuestions.map(q => ({
+          prompt: q.prompt,
+          answerText: q.answerText,
+          options: shuffleArray(q.options)
+        }));
+      }
+
+      if (shuffleQuestions) {
+        quizQuestions = shuffleArray(quizQuestions);
+      }
+
+      selectedAnswers = new Array(quizQuestions.length).fill(null);
+      answeredQuestions = new Array(quizQuestions.length).fill(false);
+      currentIndex = 0;
+      score = 0;
+    }
+
+    function updateTopBar() {
+      progressText.textContent = "Question " + (currentIndex + 1) + " / " + quizQuestions.length;
+      scoreText.textContent = "Score: " + score;
+    }
+
+    function renderQuestion() {
+      const q = quizQuestions[currentIndex];
+      if (!q) return;
+
+      updateTopBar();
+      questionText.textContent = q.prompt;
+      optionsContainer.innerHTML = "";
+      feedbackBox.className = "hidden";
+      feedbackBox.textContent = "";
+
+      q.options.forEach((option, index) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.type = "button";
+        btn.textContent = String.fromCharCode(65 + index) + ". " + option;
+
+        const alreadyAnswered = answeredQuestions[currentIndex];
+        const selectedIndex = selectedAnswers[currentIndex];
+        const correctIndex = q.options.indexOf(q.answerText);
+
+        if (alreadyAnswered) {
+          btn.disabled = true;
+          if (index === correctIndex) btn.classList.add("correct-choice");
+          if (selectedIndex === index && selectedIndex !== correctIndex) btn.classList.add("wrong-choice");
+        }
+
+        btn.onclick = function () {
+          if (answeredQuestions[currentIndex]) return;
+
+          selectedAnswers[currentIndex] = index;
+          answeredQuestions[currentIndex] = true;
+
+          if (q.options[index] === q.answerText) {
+            score++;
+          }
+
+          showFeedback();
+          renderQuestion();
+        };
+
+        optionsContainer.appendChild(btn);
+      });
+
+      if (answeredQuestions[currentIndex]) {
+        showFeedback();
+      }
+
+      prevBtn.disabled = currentIndex === 0;
+      nextBtn.disabled = !answeredQuestions[currentIndex] || currentIndex === quizQuestions.length - 1;
+
+      if (currentIndex === quizQuestions.length - 1) {
+        nextBtn.classList.add("hidden");
+        submitBtn.classList.remove("hidden");
+        submitBtn.disabled = !answeredQuestions[currentIndex];
+      } else {
+        nextBtn.classList.remove("hidden");
+        submitBtn.classList.add("hidden");
+      }
+    }
+
+    function showFeedback() {
+      const q = quizQuestions[currentIndex];
+      const selectedIndex = selectedAnswers[currentIndex];
+      const selectedText = q.options[selectedIndex];
+      const correctText = q.answerText;
+
+      feedbackBox.classList.remove("hidden");
+      feedbackBox.classList.add("feedback");
+
+      if (selectedText === correctText) {
+        feedbackBox.classList.remove("incorrect");
+        feedbackBox.classList.add("correct");
+        feedbackBox.textContent = "Correct";
+      } else {
+        feedbackBox.classList.remove("correct");
+        feedbackBox.classList.add("incorrect");
+        feedbackBox.textContent = "Wrong. Correct answer: " + correctText;
+      }
+
+      updateTopBar();
+    }
+
+    function startQuiz() {
+      buildQuiz();
+      quizArea.classList.remove("hidden");
+      resultArea.classList.add("hidden");
+      reviewArea.classList.add("hidden");
+      reviewArea.innerHTML = "";
+      renderQuestion();
+    }
+
+    function submitQuiz() {
+      const total = quizQuestions.length;
+      const percent = ((score / total) * 100).toFixed(1);
+
+      finalScore.textContent = "Score: " + score + " / " + total;
+      finalPercent.textContent = "Percent: " + percent + "%";
+      resultArea.classList.remove("hidden");
+      reviewArea.classList.add("hidden");
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    }
+
+    function reviewWrongAnswers() {
+      reviewArea.innerHTML = "";
+      let wrongCount = 0;
+
+      for (let i = 0; i < quizQuestions.length; i++) {
+        const q = quizQuestions[i];
+        const selectedIndex = selectedAnswers[i];
+        const selectedText = selectedIndex === null ? "No answer selected" : q.options[selectedIndex];
+        const isCorrect = selectedIndex !== null && q.options[selectedIndex] === q.answerText;
+
+        if (!isCorrect) {
+          wrongCount++;
+          const div = document.createElement("div");
+          div.className = "review-item";
+          div.innerHTML =
+            "<h3>Question " + (i + 1) + "</h3>" +
+            "<p><strong>" + q.prompt + "</strong></p>" +
+            "<p class='incorrect'>Your answer: " + selectedText + "</p>" +
+            "<p class='correct'>Correct answer: " + q.answerText + "</p>";
+          reviewArea.appendChild(div);
+        }
+      }
+
+      if (wrongCount === 0) {
+        reviewArea.innerHTML = "<div class='review-item'><p class='correct'>Perfect score. No wrong answers to review.</p></div>";
+      }
+
+      reviewArea.classList.remove("hidden");
+    }
+
+    startBtn.onclick = startQuiz;
+    restartBtn.onclick = startQuiz;
+
+    prevBtn.onclick = function () {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderQuestion();
+      }
+    };
+
+    nextBtn.onclick = function () {
+      if (currentIndex < quizQuestions.length - 1 && answeredQuestions[currentIndex]) {
+        currentIndex++;
+        renderQuestion();
+      }
+    };
+
+    submitBtn.onclick = submitQuiz;
+    reviewBtn.onclick = reviewWrongAnswers;
+  </script>
+</body>
+</html>
